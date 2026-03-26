@@ -1,0 +1,12 @@
+{
+  "name": "lcc-menu-automation",
+  "version": "1.0.0",
+  "description": "Captura automática del menú diario de La Cucharona",
+  "main": "menu.js",
+  "scripts": {
+    "start": "node menu.js"
+  },
+  "dependencies": {
+    "playwright": "^1.52.0"
+  }
+}
