@@ -16,7 +16,8 @@ async function pausa(ms) {
 }
 
 function extraerFecha(texto) {
-  const re = /Entrega\s+\w+\s+(\d{1,2})\s+de\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)/gi;
+  const re = /Entrega\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)\s+(\d{1,2})\s+de\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)/gi;
+
   const meses = {
     enero: '01',
     febrero: '02',
@@ -32,6 +33,28 @@ function extraerFecha(texto) {
     noviembre: '11',
     diciembre: '12'
   };
+
+  const fechas = [];
+  let m;
+
+  while ((m = re.exec(String(texto || ''))) !== null) {
+    const dd = String(m[2]).padStart(2, '0');
+    const mm = meses[String(m[3] || '').toLowerCase()];
+    const yyyy = String(new Date().getFullYear());
+
+    if (mm) fechas.push(`${dd}-${mm}-${yyyy}`);
+  }
+
+  if (!fechas.length) throw new Error('NO LEO FECHA');
+
+  fechas.sort((a, b) => {
+    const pa = a.split('-').reverse().join('');
+    const pb = b.split('-').reverse().join('');
+    return pb.localeCompare(pa);
+  });
+
+  return fechas[0];
+}
 
   const fechas = [];
   let m;
