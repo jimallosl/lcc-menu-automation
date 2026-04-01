@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 
 const MENU_URL = 'https://lacucharonaparallevar.es/products/menu-diario-oficinas-madrid';
-const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbw68zBrjz_ywjNoKLQlOAZ_fMn5DA-zuUEu1H7k6st-EpmmhucRZcDhsTRVIjKXJ6lFKA/exec';
+const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyUdvp_YACDTNhkpUjZb_MC6t8ankNiL5GM_tAg2uV2nnOb_rrcUN0g5eCNylfCxZUsQw/exec';
 
 function limpio(t) {
   return String(t || '').replace(/\s+/g, ' ').trim();
