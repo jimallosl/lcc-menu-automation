@@ -56,27 +56,6 @@ function extraerFecha(texto) {
   return fechas[0];
 }
 
-  const fechas = [];
-  let m;
-
-  while ((m = re.exec(String(texto || ''))) !== null) {
-    const dd = String(m[1]).padStart(2, '0');
-    const mm = meses[String(m[2] || '').toLowerCase()];
-    const yyyy = String(new Date().getFullYear());
-    if (mm) fechas.push(`${dd}-${mm}-${yyyy}`);
-  }
-
-  if (!fechas.length) throw new Error('NO LEO FECHA');
-
-  fechas.sort((a, b) => {
-    const pa = a.split('-').reverse().join('');
-    const pb = b.split('-').reverse().join('');
-    return pb.localeCompare(pa);
-  });
-
-  return fechas[0];
-}
-
 function filtrarPlatos(texto) {
   let lineas = String(texto || '')
     .split('\n')
@@ -183,7 +162,6 @@ async function main() {
       fecha,
       platos_detectados: platos.length
     }, null, 2));
-
   } finally {
     await browser.close();
   }
