@@ -3,8 +3,8 @@ name: LCC Menu Automation
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 23 * * *'
-    - cron: '20 23 * * *'
+    - cron: '0 20 * * *'
+    - cron: '20 20 * * *'
 
 concurrency:
   group: lcc-menu-automation
