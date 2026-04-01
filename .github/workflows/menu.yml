@@ -3,16 +3,11 @@ name: LCC Menu Automation
 on:
   workflow_dispatch:
   schedule:
-  - cron: '0 21 * * *'
-
-concurrency:
-  group: lcc-menu-automation
-  cancel-in-progress: false
+    - cron: '0 20 * * *'   # 22:00 España
 
 jobs:
   capturar-menu:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
 
     steps:
       - name: Checkout
@@ -26,10 +21,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # 🔥 ESTA ES LA CLAVE
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
       - name: Run menu capture
-  run: |
-    node menu.js
+        run: node menu.js
