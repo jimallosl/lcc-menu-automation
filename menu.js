@@ -16,12 +16,7 @@ async function pausa(ms) {
 }
 
 function extraerFecha(texto) {
-  const m = String(texto || '').match(
-    /Entrega\s+\w+\s+(\d{1,2})\s+de\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)/i
-  );
-
-  if (!m) throw new Error('NO LEO FECHA');
-
+  const re = /Entrega\s+\w+\s+(\d{1,2})\s+de\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)/gi;
   const meses = {
     enero: '01',
     febrero: '02',
@@ -38,13 +33,25 @@ function extraerFecha(texto) {
     diciembre: '12'
   };
 
-  const dd = String(m[1]).padStart(2, '0');
-  const mm = meses[String(m[2] || '').toLowerCase()];
-  const yyyy = String(new Date().getFullYear());
+  const fechas = [];
+  let m;
 
-  if (!mm) throw new Error('MES NO VALIDO');
+  while ((m = re.exec(String(texto || ''))) !== null) {
+    const dd = String(m[1]).padStart(2, '0');
+    const mm = meses[String(m[2] || '').toLowerCase()];
+    const yyyy = String(new Date().getFullYear());
+    if (mm) fechas.push(`${dd}-${mm}-${yyyy}`);
+  }
 
-  return `${dd}-${mm}-${yyyy}`;
+  if (!fechas.length) throw new Error('NO LEO FECHA');
+
+  fechas.sort((a, b) => {
+    const pa = a.split('-').reverse().join('');
+    const pb = b.split('-').reverse().join('');
+    return pb.localeCompare(pa);
+  });
+
+  return fechas[0];
 }
 
 function filtrarPlatos(texto) {
@@ -84,27 +91,28 @@ function filtrarPlatos(texto) {
 }
 
 async function main() {
+  console.log('1) Inicio');
+
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
 
   try {
+    console.log('2) Abriendo web');
     await page.goto(MENU_URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
     await pausa(8000);
 
     let prev = -1;
     let iguales = 0;
 
+    console.log('3) Scroll');
     for (let i = 0; i < 30; i++) {
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
       await pausa(1500);
 
       const h = await page.evaluate(() => document.body.scrollHeight);
 
-      if (h === prev) {
-        iguales++;
-      } else {
-        iguales = 0;
-      }
+      if (h === prev) iguales++;
+      else iguales = 0;
 
       prev = h;
       if (iguales >= 2) break;
@@ -113,9 +121,18 @@ async function main() {
     await page.evaluate(() => window.scrollTo(0, 0));
     await pausa(1000);
 
+    console.log('4) Leyendo texto');
     const texto = await page.evaluate(() => document.body.innerText || '');
+    console.log('TEXTO_INICIO:', texto.slice(0, 1000));
+
+    console.log('5) Extrayendo fecha');
     const fecha = extraerFecha(texto);
+    console.log('FECHA:', fecha);
+
+    console.log('6) Extrayendo platos');
     const platos = filtrarPlatos(texto);
+    console.log('PLATOS_DETECTADOS:', platos.length);
+    console.log('PLATOS_MUESTRA:', JSON.stringify(platos.slice(0, 10), null, 2));
 
     if (!platos.length) {
       throw new Error('NO HAY PLATOS');
@@ -123,20 +140,25 @@ async function main() {
 
     const payload = { fecha, platos };
 
-    const res = await page.evaluate(async ({ WEBAPP_URL, payload }) => {
-      await fetch(WEBAPP_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      });
-      return true;
-    }, { WEBAPP_URL, payload });
+    console.log('7) Enviando a Apps Script');
+    const res = await fetch(WEBAPP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+
+    const body = await res.text();
+    console.log('WEBAPP_STATUS:', res.status);
+    console.log('WEBAPP_BODY:', body);
+
+    if (!res.ok) {
+      throw new Error(`WEBAPP HTTP ${res.status}`);
+    }
 
     console.log(JSON.stringify({
       ok: true,
       fecha,
-      platos_detectados: platos.length,
-      enviado: res
+      platos_detectados: platos.length
     }, null, 2));
 
   } finally {
@@ -145,6 +167,6 @@ async function main() {
 }
 
 main().catch(err => {
-  console.error('ERROR:', err && err.message ? err.message : err);
+  console.error('ERROR_REAL:', err && err.stack ? err.stack : err);
   process.exit(1);
 });
