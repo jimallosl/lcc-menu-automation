@@ -27,7 +27,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # 🔥 ESTA ES LA CLAVE
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
