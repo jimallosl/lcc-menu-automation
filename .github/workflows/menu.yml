@@ -33,4 +33,4 @@ jobs:
 
       - name: Run menu capture
   run: |
-    node menu.js || echo "❌ SCRIPT FALLÓ"
+    node menu.js
